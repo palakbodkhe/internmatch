@@ -9,15 +9,18 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
-// Test route
 app.get("/", (req, res) => {
   res.json({ message: "InternMatch API is running!" });
 });
 
-// Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/internships", require("./routes/internships"));
 app.use("/api/applications", require("./routes/applications"));
