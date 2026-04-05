@@ -8,9 +8,9 @@ const {
 } = require("../controllers/applicationController");
 const { protect, companyOnly, studentOnly } = require("../middleware/auth");
 
-router.post("/:internshipId", protect, studentOnly, applyToInternship);
 router.get("/my", protect, studentOnly, getMyApplications);
 router.get("/internship/:internshipId", protect, companyOnly, getApplicants);
+router.post("/:internshipId", protect, studentOnly, applyToInternship);
 router.put("/:id", protect, companyOnly, updateStatus);
 
 module.exports = router;

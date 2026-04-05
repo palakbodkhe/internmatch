@@ -9,12 +9,15 @@ const Internships = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [filterField, setFilterField] = useState("");
 
-  const fetchInternships = async () => {
+  const fetchInternships = async (searchVal = search) => {
+    setLoading(true);
     try {
       const params = {};
-      if (search) params.search = search;
+      if (searchVal) params.search = searchVal;
       if (filterType) params.type = filterType;
+      if (filterField) params.field = filterField;
       if (user?.skills?.length) params.skills = user.skills.join(",");
       const { data } = await api.get("/internships", { params });
       setInternships(data);
@@ -27,12 +30,31 @@ const Internships = () => {
 
   useEffect(() => {
     fetchInternships();
-  }, [filterType]);
+  }, [filterType, filterField]);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchInternships();
+    fetchInternships(search);
   };
+
+  const matchColor = (score) => {
+    if (score >= 75) return "bg-green-50 text-green-700";
+    if (score >= 40) return "bg-yellow-50 text-yellow-700";
+    return "bg-gray-100 text-gray-500";
+  };
+
+  const fields = [
+    "",
+    "Frontend Development",
+    "Backend Development",
+    "Full Stack Development",
+    "Data Science",
+    "Machine Learning",
+    "DevOps",
+    "Mobile Development",
+    "Cybersecurity",
+    "Software Engineering",
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -41,9 +63,9 @@ const Internships = () => {
           Browse Internships
         </h1>
         <p className="text-gray-500 mb-8">
-          {user
-            ? "Ranked by how well they match your skills"
-            : "Log in to see personalized matches"}
+          {user?.skills?.length
+            ? `Showing matches based on your skills: ${user.skills.join(", ")}`
+            : "Log in and add your skills to see personalized match scores"}
         </p>
 
         <form onSubmit={handleSearch} className="flex gap-3 mb-6">
@@ -62,7 +84,7 @@ const Internships = () => {
           </button>
         </form>
 
-        <div className="flex gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-4">
           {["", "remote", "onsite", "hybrid"].map((type) => (
             <button
               key={type}
@@ -74,14 +96,32 @@ const Internships = () => {
               }`}
             >
               {type === ""
-                ? "All"
+                ? "All types"
                 : type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-8">
+          {fields.map((field) => (
+            <button
+              key={field}
+              onClick={() => setFilterField(field)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border ${
+                filterField === field
+                  ? "bg-indigo-600 text-white border-indigo-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
+              }`}
+            >
+              {field === "" ? "All fields" : field}
+            </button>
+          ))}
+        </div>
+
         {loading ? (
-          <div className="text-center py-20 text-gray-400">Loading...</div>
+          <div className="text-center py-20 text-gray-400">
+            Loading internships...
+          </div>
         ) : internships.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             No internships found
@@ -95,15 +135,29 @@ const Internships = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
                       <h3 className="text-lg font-semibold text-gray-900">
                         {internship.title}
                       </h3>
-                      {internship.matchScore !== undefined && (
-                        <span className="bg-green-50 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
-                          {internship.matchScore}% match
-                        </span>
-                      )}
+                      {internship.matchScore !== undefined &&
+                        internship.matchScore > 0 && (
+                          <span
+                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${matchColor(internship.matchScore)}`}
+                          >
+                            {internship.matchScore}% match
+                          </span>
+                        )}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full capitalize font-medium ${
+                          internship.type === "remote"
+                            ? "bg-blue-50 text-blue-700"
+                            : internship.type === "hybrid"
+                              ? "bg-purple-50 text-purple-700"
+                              : "bg-orange-50 text-orange-700"
+                        }`}
+                      >
+                        {internship.type}
+                      </span>
                     </div>
                     <p className="text-indigo-600 font-medium mb-2">
                       {internship.companyName}
@@ -115,17 +169,26 @@ const Internships = () => {
                       {internship.requiredSkills.map((skill) => (
                         <span
                           key={skill}
-                          className="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-md"
+                          className={`text-xs px-2 py-1 rounded-md font-medium ${
+                            internship.matchedSkills?.includes(
+                              skill.toLowerCase(),
+                            )
+                              ? "bg-green-50 text-green-700 border border-green-200"
+                              : "bg-indigo-50 text-indigo-700"
+                          }`}
                         >
                           {skill}
                         </span>
                       ))}
                     </div>
-                    <div className="flex gap-4 text-sm text-gray-400">
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                       <span>📍 {internship.location}</span>
                       <span>⏱ {internship.duration}</span>
                       <span>💰 {internship.stipend}</span>
-                      <span className="capitalize">🏠 {internship.type}</span>
+                      <span>
+                        👥 {internship.openings} opening
+                        {internship.openings > 1 ? "s" : ""}
+                      </span>
                     </div>
                   </div>
                   <Link

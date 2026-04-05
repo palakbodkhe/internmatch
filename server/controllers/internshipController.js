@@ -15,26 +15,40 @@ const getInternships = async (req, res) => {
         { title: { $regex: search, $options: "i" } },
         { description: { $regex: search, $options: "i" } },
         { companyName: { $regex: search, $options: "i" } },
+        { requiredSkills: { $in: [new RegExp(search, "i")] } },
       ];
     }
 
     let internships = await Internship.find(query).sort({ createdAt: -1 });
 
-    // Skill-based matching score
     if (skills) {
       const userSkills = skills
         .toLowerCase()
         .split(",")
-        .map((s) => s.trim());
+        .map((s) => s.trim())
+        .filter(Boolean);
+
       internships = internships.map((internship) => {
         const reqSkills = internship.requiredSkills.map((s) => s.toLowerCase());
-        const matchCount = userSkills.filter((s) =>
-          reqSkills.includes(s),
-        ).length;
+
+        // Count how many user skills match required skills
+        const matchedSkills = userSkills.filter((s) => reqSkills.includes(s));
+        const matchCount = matchedSkills.length;
+
+        // Score: based on percentage of required skills the user has
         const score =
-          reqSkills.length > 0 ? (matchCount / reqSkills.length) * 100 : 0;
-        return { ...internship.toObject(), matchScore: Math.round(score) };
+          reqSkills.length > 0
+            ? Math.round((matchCount / reqSkills.length) * 100)
+            : 0;
+
+        return {
+          ...internship.toObject(),
+          matchScore: score,
+          matchedSkills,
+        };
       });
+
+      // Sort: matched internships first, then by score descending
       internships.sort((a, b) => b.matchScore - a.matchScore);
     }
 
