@@ -9,6 +9,7 @@ import InternshipDetail from "./pages/InternshipDetail";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import PostInternship from "./pages/PostInternship";
+import Applicants from "./pages/Applicants";
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -52,6 +53,14 @@ function App() {
             <CompanyRoute>
               <PostInternship />
             </CompanyRoute>
+          }
+        />
+        <Route
+          path="/applicants/:internshipId"
+          element={
+            <ProtectedRoute>
+              <Applicants />
+            </ProtectedRoute>
           }
         />
       </Routes>

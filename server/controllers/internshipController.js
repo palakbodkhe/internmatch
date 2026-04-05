@@ -122,10 +122,24 @@ const deleteInternship = async (req, res) => {
   }
 };
 
+// @desc    Get internships posted by logged in company
+// @route   GET /api/internships/mine
+const getMyInternships = async (req, res) => {
+  try {
+    const internships = await Internship.find({ company: req.user._id }).sort({
+      createdAt: -1,
+    });
+    res.json(internships);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getInternships,
   getInternship,
   createInternship,
   updateInternship,
   deleteInternship,
+  getMyInternships,
 };

@@ -6,10 +6,12 @@ const {
   createInternship,
   updateInternship,
   deleteInternship,
+  getMyInternships,
 } = require("../controllers/internshipController");
 const { protect, companyOnly } = require("../middleware/auth");
 
 router.get("/", getInternships);
+router.get("/mine", protect, companyOnly, getMyInternships);
 router.get("/:id", getInternship);
 router.post("/", protect, companyOnly, createInternship);
 router.put("/:id", protect, companyOnly, updateInternship);
