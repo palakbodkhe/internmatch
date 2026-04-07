@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../utils/api";
+import Spinner from "../components/ui/Spinner";
 
 const Internships = () => {
   const { user } = useAuth();
@@ -119,9 +120,7 @@ const Internships = () => {
         </div>
 
         {loading ? (
-          <div className="text-center py-20 text-gray-400">
-            Loading internships...
-          </div>
+          <Spinner text="Loading internships..." />
         ) : internships.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             No internships found

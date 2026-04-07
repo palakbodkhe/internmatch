@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import PostInternship from "./pages/PostInternship";
 import Applicants from "./pages/Applicants";
+import NotFound from "./pages/NotFound";
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
@@ -63,6 +64,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
